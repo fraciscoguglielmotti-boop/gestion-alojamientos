@@ -1,47 +1,83 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-/* Unsplash imagery — falls back to the tile's glass gradient if a photo
-   fails to load, so the layout never looks broken offline. Swap these for
-   Romano Glass's own professional photography in production. */
+/* Imagery — grayscale-filtered stock (see CSS) unifies the palette and keeps
+   the monochrome, editorial look. Falls back to a dark ground if a photo
+   fails to load. Swap for Romano Glass's own photography in production. */
 const IMG = {
-  hero: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=1200&q=70',
-  heritage: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=70',
-  shower: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=70',
-  splash: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=70',
-  mirror: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=70',
-  balustrade: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=70',
-  pool: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=1200&q=70',
+  about: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=70',
+  balustrade: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=70',
+  doors: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1000&q=70',
+  shower: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1000&q=70',
+  splash: 'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1000&q=70',
+  stair: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1000&q=70',
+  pool: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=1000&q=70',
 }
+// Sydney footage for the hero. Swap HERO_VIDEO for the client's own drone reel
+// (or a licensed Sydney clip). Graceful fallback chain: if the video fails,
+// the Sydney poster shows; if that fails too, a generated skyline sits behind.
+const HERO_VIDEO = 'https://assets.mixkit.co/videos/preview/mixkit-sydney-harbour-bridge-and-opera-house-4468-large.mp4'
+const HERO_POSTER = 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1600&q=70'
 
-function hideOnError(e: React.SyntheticEvent<HTMLImageElement>) {
+function hideImg(e: React.SyntheticEvent<HTMLImageElement>) {
   e.currentTarget.style.display = 'none'
 }
 
-function Arrow() {
+const SOLUTIONS = [
+  { n: 'Balcony Balustrades', no: '01', img: IMG.balustrade },
+  { n: 'Internal Glass Doors', no: '02', img: IMG.doors },
+  { n: 'Frameless Showers', no: '03', img: IMG.shower },
+  { n: 'Glass Splashbacks', no: '04', img: IMG.splash },
+  { n: 'Staircase Glazing', no: '05', img: IMG.stair },
+  { n: 'Glass Pool Fencing', no: '06', img: IMG.pool },
+]
+
+const SERVICES = [
+  { no: '01', t: 'Consultancy', d: 'Reading the space and advising on glass, thickness and detail.' },
+  { no: '02', t: 'Surveying', d: 'Laser-precise on-site measurement — no templates, no guesswork.' },
+  { no: '03', t: 'Fabrication', d: 'Cut, toughened and edge-polished in our Five Dock workshop.' },
+  { no: '04', t: 'Installation', d: 'Fitted by the same hands that measured, finished on time.' },
+]
+
+const MATERIALS = [
+  { n: 'Low-Iron', d: 'Ultra-clear glass with a true, colourless edge.' },
+  { n: 'Toughened', d: 'Safety-grade strength for showers, stairs and pools.' },
+  { n: 'Laminated', d: 'Acoustic and structural performance in a single pane.' },
+  { n: 'Textured', d: 'Fluted, satin and patterned finishes for privacy.' },
+  { n: 'Mirror', d: 'Clear, bronze and antique finishes, cut to size.' },
+]
+
+function Caret() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14M13 6l6 6-6 6" />
+    <svg className="caret" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M2.5 4.5 6 8l3.5-3.5" />
+    </svg>
+  )
+}
+
+function ArrowUpRight() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 17 17 7M9 7h8v8" />
     </svg>
   )
 }
 
 export default function RomanoGlassPage() {
   const rootRef = useRef<HTMLDivElement>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    // header shadow
     const header = root.querySelector('header')
-    const onScroll = () => header?.classList.toggle('scrolled', window.scrollY > 8)
+    const onScroll = () => header?.classList.toggle('solid', window.scrollY > 40)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
 
-    // reveal
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((en) => {
@@ -53,115 +89,67 @@ export default function RomanoGlassPage() {
       },
       { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
     )
-    root.querySelectorAll('.reveal').forEach((el) => io.observe(el))
+    root.querySelectorAll('.rv').forEach((el) => io.observe(el))
 
-    // caustics canvases
-    const hexA = (hex: string, a: number) => {
-      let h = hex.replace('#', '')
-      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2]
-      const n = parseInt(h, 16)
-      return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`
-    }
-    const PAL: Record<string, string[]> = {
-      caustics: ['#1C9B84', '#0F6E5C', '#2ec9ac'],
-      cta: ['#25b79e', '#0a3a32', '#8bf0dd'],
-    }
-    type Field = { draw: (t: number) => void; refit: () => void }
-    const fields: Field[] = []
-
-    const build = (
-      canvas: HTMLCanvasElement,
-      key: string,
-      opts: { count: number; alpha: number; scale: number; lines?: number }
-    ): Field => {
+    // animated monochrome sky behind the hero video (fallback ambience)
+    const sky = root.querySelector<HTMLCanvasElement>('#sky')
+    let raf = 0
+    if (sky) {
+      let ctx = sky.getContext('2d')!
+      let W = 0
+      let H = 0
       const fit = () => {
         const dpr = Math.min(window.devicePixelRatio || 1, 2)
-        const r = canvas.getBoundingClientRect()
-        canvas.width = Math.max(1, Math.round(r.width * dpr))
-        canvas.height = Math.max(1, Math.round(r.height * dpr))
-        const ctx = canvas.getContext('2d')!
+        const r = sky.getBoundingClientRect()
+        sky.width = Math.max(1, Math.round(r.width * dpr))
+        sky.height = Math.max(1, Math.round(r.height * dpr))
+        ctx = sky.getContext('2d')!
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-        return { ctx, w: r.width, h: r.height }
+        W = r.width
+        H = r.height
       }
-      let s = fit()
-      const pal = PAL[key] || PAL.caustics
-      const seeds = Array.from({ length: opts.count }, (_, i) => ({
-        x: ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1,
-        y: ((Math.sin(i * 78.233) * 12543.987) % 1 + 1) % 1,
-        r: 0.28 + (Math.sin(i * 3.17) * 0.5 + 0.5) * 0.4,
-        c: pal[i % pal.length],
-        px: 0.15 + 0.2 * Math.sin(i * 2.1),
-        py: 0.12 + 0.18 * Math.cos(i * 1.7),
-        sp: 0.18 + 0.12 * (i % 3),
-      }))
+      fit()
       const draw = (t: number) => {
-        const { ctx, w: W, h: H } = s
-        ctx.clearRect(0, 0, W, H)
-        ctx.globalCompositeOperation = 'lighter'
-        seeds.forEach((sd, i) => {
-          const cx = (sd.x + sd.px * Math.sin(t * sd.sp + i)) * W
-          const cy = (sd.y + sd.py * Math.cos(t * sd.sp * 0.9 + i * 1.3)) * H
-          const rad = sd.r * Math.max(W, H) * opts.scale
-          const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad)
-          g.addColorStop(0, hexA(sd.c, opts.alpha))
-          g.addColorStop(1, hexA(sd.c, 0))
-          ctx.fillStyle = g
-          ctx.beginPath()
-          ctx.arc(cx, cy, rad, 0, 6.2832)
-          ctx.fill()
-        })
-        ctx.globalCompositeOperation = 'source-over'
-        if (opts.lines) {
-          ctx.globalCompositeOperation = 'screen'
-          for (let k = 0; k < opts.lines; k++) {
-            const off = (k / opts.lines) * W + Math.sin(t * 0.4 + k) * 30
-            ctx.strokeStyle = hexA(pal[2], 0.1)
-            ctx.lineWidth = 1
-            ctx.beginPath()
-            ctx.moveTo(off, 0)
-            ctx.lineTo(off + W * 0.4, H)
-            ctx.stroke()
-          }
-          ctx.globalCompositeOperation = 'source-over'
-        }
+        const g = ctx.createLinearGradient(0, 0, 0, H)
+        g.addColorStop(0, '#20211f')
+        g.addColorStop(0.45, '#34332e')
+        g.addColorStop(0.75, '#4a463f')
+        g.addColorStop(1, '#5b564c')
+        ctx.fillStyle = g
+        ctx.fillRect(0, 0, W, H)
+        const gx = W * (0.28 + 0.12 * Math.sin(t * 0.05))
+        const gy = H * (0.34 + 0.05 * Math.cos(t * 0.04))
+        const rg = ctx.createRadialGradient(gx, gy, 0, gx, gy, H * 0.9)
+        rg.addColorStop(0, 'rgba(255,250,240,0.5)')
+        rg.addColorStop(0.4, 'rgba(255,248,235,0.14)')
+        rg.addColorStop(1, 'rgba(255,248,235,0)')
+        ctx.fillStyle = rg
+        ctx.fillRect(0, 0, W, H)
       }
-      return { draw, refit: () => { s = fit() } }
+      let t = 0
+      const loop = () => {
+        t += 0.016
+        draw(t)
+        raf = requestAnimationFrame(loop)
+      }
+      if (reduce) draw(3)
+      else raf = requestAnimationFrame(loop)
+      const onResize = () => {
+        fit()
+        if (reduce) draw(3)
+      }
+      window.addEventListener('resize', onResize)
+      return () => {
+        window.removeEventListener('scroll', onScroll)
+        window.removeEventListener('resize', onResize)
+        io.disconnect()
+        cancelAnimationFrame(raf)
+      }
     }
-
-    const cau = root.querySelector<HTMLCanvasElement>('#caustics')
-    if (cau) fields.push(build(cau, 'caustics', { count: 5, alpha: 0.16, scale: 1.1, lines: 5 }))
-    const cta = root.querySelector<HTMLCanvasElement>('#cta-art')
-    if (cta) fields.push(build(cta, 'cta', { count: 6, alpha: 0.4, scale: 1, lines: 6 }))
-
-    let raf = 0
-    let t = 0
-    const frame = () => {
-      t += 0.006
-      fields.forEach((f) => f.draw(t))
-      raf = requestAnimationFrame(frame)
-    }
-    if (reduce) {
-      t = 2
-      fields.forEach((f) => f.draw(t))
-    } else {
-      raf = requestAnimationFrame(frame)
-    }
-
-    let rt: ReturnType<typeof setTimeout>
-    const onResize = () => {
-      clearTimeout(rt)
-      rt = setTimeout(() => {
-        fields.forEach((f) => f.refit())
-        if (reduce) fields.forEach((f) => f.draw(t))
-      }, 160)
-    }
-    window.addEventListener('resize', onResize)
 
     return () => {
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onResize)
       io.disconnect()
-      cancelAnimationFrame(raf)
     }
   }, [])
 
@@ -177,262 +165,271 @@ export default function RomanoGlassPage() {
     <div className="rg" ref={rootRef} id="top">
       <header>
         <div className="wrap nav">
-          <a className="brand" href="#top" aria-label="Romano Glass home">
-            <svg className="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <rect x="4" y="4" width="32" height="32" rx="3" stroke="var(--accent)" strokeWidth="1.6" />
-              <path d="M4 20 H36 M20 4 V36" stroke="var(--accent)" strokeWidth="1.1" opacity=".55" />
-              <path d="M8 32 L32 8" stroke="var(--accent)" strokeWidth="1.1" opacity=".8" />
-              <circle cx="20" cy="20" r="3.2" fill="var(--accent)" />
+          <a className="brand" href="#top" aria-label="Romano Glass">
+            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
+              <rect x="6.7" y="6.7" width="26.6" height="26.6" transform="rotate(45 20 20)" stroke="currentColor" strokeWidth="1.5" />
             </svg>
-            <span className="name">
-              Romano Glass
-              <span>Architectural Glazing · Sydney</span>
+            <span className="wm">
+              <b>ROMANO</b>
+              <span>GLASS</span>
             </span>
           </a>
-          <nav className="nav-links" aria-label="Primary">
-            <a href="#services">Services</a>
-            <a href="#heritage">Our Craft</a>
-            <a href="#gallery">Work</a>
-            <a href="#process">Process</a>
-            <a href="#contact">Contact</a>
+          <nav className="menu" aria-label="Primary">
+            <div><a className="item" href="#top">Home</a></div>
+            <div>
+              <button className="item">Solutions <Caret /></button>
+              <div className="dropdown">
+                <a href="#solutions">Balcony Balustrades</a>
+                <a href="#solutions">Internal Glass Doors</a>
+                <a href="#solutions">Frameless Shower Screens</a>
+                <a href="#solutions">Staircase Glazing</a>
+                <a href="#solutions">Partitions &amp; Facades</a>
+              </div>
+            </div>
+            <div>
+              <button className="item">Services <Caret /></button>
+              <div className="dropdown">
+                <a href="#services">Design Consultancy</a>
+                <a href="#services">Technical Surveying</a>
+                <a href="#services">Fabrication</a>
+                <a href="#services">Installation</a>
+              </div>
+            </div>
+            <div>
+              <button className="item">Tailor-Made <Caret /></button>
+              <div className="dropdown">
+                <a href="#who">Bespoke Projects</a>
+                <a href="#who">Curved &amp; Patterned Glass</a>
+                <a href="#who">Architectural Collaboration</a>
+              </div>
+            </div>
+            <div><a className="item" href="#materials">Materials</a></div>
+            <div><a className="item" href="#who">Who We Are</a></div>
+            <div><a className="item" href="#contact">Contact</a></div>
           </nav>
-          <a className="nav-cta" href="#contact">Get a quote</a>
-          <button className="theme-btn" onClick={toggleTheme} aria-label="Toggle light and dark theme" title="Toggle theme">
+          <button className="theme-btn" onClick={toggleTheme} aria-label="Toggle theme" title="Toggle theme">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
               <circle cx="12" cy="12" r="4.2" />
               <path d="M12 2v2.4M12 19.6V22M22 12h-2.4M4.4 12H2M19 5l-1.7 1.7M6.7 17.3 5 19M19 19l-1.7-1.7M6.7 6.7 5 5" />
             </svg>
           </button>
+          <button className="burger" onClick={() => setMenuOpen(true)} aria-label="Open menu">
+            <span /><span /><span />
+          </button>
         </div>
       </header>
+
+      <div className={`msheet${menuOpen ? ' open' : ''}`}>
+        <div className="top">
+          <span className="wm" style={{ fontFamily: 'var(--serif)', fontWeight: 500, fontSize: '1.2rem', letterSpacing: '.3em' }}>ROMANO GLASS</span>
+          <button className="close" onClick={() => setMenuOpen(false)} aria-label="Close menu">×</button>
+        </div>
+        {['Home', 'Solutions', 'Services', 'Tailor-Made', 'Materials', 'Who We Are', 'Contact'].map((m) => {
+          const href = m === 'Home' ? '#top' : m === 'Tailor-Made' || m === 'Who We Are' ? '#who' : `#${m.toLowerCase()}`
+          return (
+            <a key={m} href={href} onClick={() => setMenuOpen(false)}>{m}</a>
+          )
+        })}
+      </div>
 
       <main>
         {/* HERO */}
         <section className="hero">
-          <canvas id="caustics" aria-hidden="true" />
-          <div className="wrap">
-            <div className="hero-grid">
-              <div className="hero-copy reveal">
-                <span className="eyebrow">Bespoke Architectural Glass · Sydney since 2008</span>
-                <h1>Glass, crafted with <em>Italian</em> precision.</h1>
-                <p className="lede">
-                  Frameless shower screens, splashbacks, balustrades and bespoke glazing — designed,
-                  fabricated and installed to a standard you can see at every edge.
-                </p>
-                <div className="cta-row">
-                  <a className="btn btn-primary" href="#contact">Request a consultation <Arrow /></a>
-                  <a className="btn btn-ghost" href="#gallery">View our work</a>
-                </div>
-                <div className="hero-stats">
-                  <div><div className="n">2008</div><div className="l">Established in Sydney</div></div>
-                  <div><div className="n">25+</div><div className="l">Years of craftsmanship</div></div>
-                  <div><div className="n">100%</div><div className="l">Custom measured &amp; made</div></div>
-                </div>
+          <div className="hero-scene">
+            <canvas id="sky" aria-hidden="true" />
+            <svg className="hero-skyline" viewBox="0 0 1600 420" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+              <g fill="currentColor">
+                <rect x="1030" y="150" width="46" height="270" />
+                <rect x="1086" y="205" width="34" height="215" />
+                <rect x="1128" y="120" width="54" height="300" />
+                <path d="M1155 120 l0 -46 l6 0 l0 46 z" />
+                <rect x="1192" y="235" width="40" height="185" />
+                <rect x="1240" y="180" width="60" height="240" />
+                <rect x="1310" y="255" width="34" height="165" />
+                <rect x="1352" y="150" width="72" height="270" />
+                <rect x="1434" y="220" width="44" height="200" />
+                <rect x="1486" y="285" width="60" height="135" />
+                <path d="M868 392 Q900 250 952 392 Z" />
+                <path d="M912 392 Q950 232 1000 392 Z" />
+                <path d="M958 392 Q1000 262 1044 392 Z" />
+                <rect x="860" y="384" width="200" height="8" />
+                <path d="M120 360 Q470 150 820 360 L820 372 Q470 176 120 372 Z" />
+                <rect x="118" y="300" width="704" height="7" />
+                <rect x="190" y="240" width="20" height="152" />
+                <rect x="730" y="240" width="20" height="152" />
+                <g stroke="currentColor" strokeWidth="2">
+                  <line x1="250" y1="284" x2="250" y2="303" />
+                  <line x1="320" y1="256" x2="320" y2="303" />
+                  <line x1="390" y1="238" x2="390" y2="303" />
+                  <line x1="470" y1="230" x2="470" y2="303" />
+                  <line x1="550" y1="238" x2="550" y2="303" />
+                  <line x1="620" y1="256" x2="620" y2="303" />
+                  <line x1="690" y1="284" x2="690" y2="303" />
+                </g>
+              </g>
+            </svg>
+            <video className="hero-video" autoPlay muted loop playsInline poster={HERO_POSTER}>
+              <source src={HERO_VIDEO} type="video/mp4" />
+            </video>
+            <div className="hero-vignette" />
+          </div>
+          <div className="wrap hero-inner">
+            <span className="eyebrow">Architectural Glass · Sydney</span>
+            <h1>The substance that shapes the project.</h1>
+            <p className="sub">Bespoke glass, drawn and made in Sydney — where precision meets the way light moves through a space.</p>
+            <div className="hero-cta">
+              <a className="btn btn-solid" href="#solutions">Explore our work</a>
+              <a className="btn btn-line" href="#contact">Start a project <ArrowUpRight /></a>
+            </div>
+          </div>
+          <div className="scroll-cue"><span>Scroll</span><span className="bar" /></div>
+        </section>
+
+        {/* ABOUT */}
+        <section className="blk about" id="about">
+          <div className="wrap about-grid">
+            <div className="about-visual rv">
+              <img className="photo" src={IMG.about} alt="Glazed partition in a Sydney interior" onError={hideImg} />
+              <span className="cap">Glazed partition · Sydney</span>
+            </div>
+            <div className="rv">
+              <div className="kicker" />
+              <span className="eyebrow">The substance that shapes the project</span>
+              <h2>Romano Glass</h2>
+              <div className="lead">
+                <p><b>Every element is connected.</b> In our work, this connection emerges between precision and perception — between functional intent and aesthetic value.</p>
+                <p>We combine artisanal mastery with contemporary research to create spaces that are coherent, luminous, and uniquely tailored.</p>
+                <p>Environments defined by our profiles become a dialogue of balance, transparency, and architecture — because in every project, the most meaningful connection is the one between those who design, those who shape, and those who inhabit the space.</p>
               </div>
-              <div className="hero-visual reveal">
-                <div className="glass-panel">
-                  <div className="glass-inner">
-                    <img className="photo" src={IMG.hero} alt="Frameless glass shower screen installation" loading="eager" onError={hideOnError} />
-                    <div className="sheen" />
-                    <div className="panel-tag">
-                      <span><b>Frameless shower screen</b>Low-iron · polished edges</span>
-                      <span className="badge">Five Dock</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <a className="link-i" href="#who">About us <span>›››</span></a>
             </div>
           </div>
         </section>
 
-        {/* TRUST */}
-        <div className="trust">
+        {/* SOLUTIONS */}
+        <section className="blk solutions" id="solutions">
           <div className="wrap">
-            <div className="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z" /><path d="M9 12l2 2 4-4" /></svg>Fully insured &amp; licensed</div>
-            <div className="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-4.5-7-10a7 7 0 0 1 14 0c0 5.5-7 10-7 10z" /><circle cx="12" cy="11" r="2.4" /></svg>Sydney-wide service</div>
-            <div className="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M6 21V9l6-5 6 5v12" /><path d="M10 21v-5h4v5" /></svg>Residential &amp; commercial</div>
-            <div className="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M4 6l8 4 8-4" /></svg>Italian-trained glaziers</div>
-            <div className="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>On-time installation</div>
-          </div>
-        </div>
-
-        {/* SERVICES */}
-        <section className="block services" id="services">
-          <div className="wrap">
-            <div className="sec-head reveal">
-              <span className="eyebrow">What we make</span>
-              <h2>A full range of architectural glass, made to measure.</h2>
-              <p>From the everyday to the exceptional — each piece cut, polished and toughened for your space, then installed by the same hands that measured it.</p>
+            <div className="sol-head rv">
+              <div className="ghost">All Our<br />Solutions</div>
+              <span className="eyebrow">Explore the design of glass</span>
             </div>
-            <div className="svc-grid">
-              {[
-                { t: 'Frameless Shower Screens', d: 'Ultra-clear low-iron panels with polished edges and premium hardware — the centrepiece of a modern bathroom.', p: <><rect x="4" y="3" width="16" height="18" rx="1" /><path d="M14 3v18M4 9h10" /><circle cx="16.5" cy="12" r="1" /></> },
-                { t: 'Glass Splashbacks', d: 'Seamless, hygienic and colour-matched to your kitchen — toughened glass in any shade, cut around every outlet.', p: <><rect x="3" y="4" width="18" height="12" rx="1" /><path d="M3 16h18M7 20h10" /><path d="M7 8l3 3 4-5" /></> },
-                { t: 'Mirrors & Wardrobes', d: 'Bespoke mirrors, antique finishes and sliding wardrobe doors — cut to size to open up and light any room.', p: <><rect x="6" y="2" width="12" height="20" rx="6" /><path d="M9 6c1.5 1 4.5 1 6 0" /></> },
-                { t: 'Balustrades & Stairs', d: 'Frameless and channel-fixed balustrades for balconies, stairs and voids — structural safety with an invisible line.', p: <><path d="M4 20V8M20 20V8M4 20h16M4 8h16" /><path d="M8 8v12M12 8v12M16 8v12M4 8l8-4 8 4" /></> },
-                { t: 'Glass Pool Fencing', d: 'Frameless pool fencing that meets Australian safety standards without blocking the view of the water.', p: <><path d="M5 21V7M11 21V7M17 21V7M3 21h18" /><path d="M4 7l7-4 7 4" /><path d="M8 12h.01M14 12h.01" /></> },
-                { t: 'Curved & Patterned Glass', d: 'Bent, textured and decorative glass for feature walls, staircases and one-off architectural pieces.', p: <><path d="M4 18c0-8 5-12 16-12" /><path d="M4 18h16" /><path d="M4 18v3M20 6v12" /></> },
-              ].map((s) => (
-                <article className="svc reveal" key={s.t}>
-                  <div className="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{s.p}</svg></div>
-                  <h3>{s.t}</h3>
-                  <p>{s.d}</p>
-                  <span className="more">Explore <Arrow /></span>
+            <div className="sol-grid">
+              {SOLUTIONS.map((s) => (
+                <article className="sol-card rv" key={s.no}>
+                  <div className="img">
+                    <img className="photo" src={s.img} alt={s.n} onError={hideImg} />
+                    <span className="arrow"><ArrowUpRight /></span>
+                  </div>
+                  <div className="meta"><span className="n">{s.n}</span><span className="no">{s.no}</span></div>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        {/* HERITAGE */}
-        <section className="block heritage" id="heritage">
-          <div className="wrap">
-            <div className="heritage-grid">
-              <div className="heritage-visual reveal">
-                <img className="photo" src={IMG.heritage} alt="Frameless glass balustrade on a modern staircase" onError={hideOnError} />
-                <div className="stamp">Est. 2008<span>Five Dock · NSW</span></div>
+        {/* SERVICES */}
+        <section className="blk services" id="services">
+          <div className="wrap services-grid">
+            <div className="rv">
+              <div className="kicker on-dark" />
+              <span className="eyebrow">Beyond simple consultancy</span>
+              <h2 style={{ marginTop: 16 }}>Services as<br />part of design.</h2>
+              <div className="copy">
+                <p>For us, the process is an integral part of the result. We oversee every phase with the same attention given to an architectural detail — from preliminary consultation to installation, from technical surveying to the management of bespoke solutions.</p>
+                <p>Quality lies not only in the final product, but in the way it is achieved. Our method blends engineering precision with design sensitivity.</p>
               </div>
-              <div className="heritage-copy reveal">
-                <span className="eyebrow">Our craft</span>
-                <h2>A family name built on the edge of every pane.</h2>
-                <div className="body">
-                  <p>Romano Glass was founded in Sydney in 2008, bringing an Italian glazier&apos;s eye to Australian homes and projects. More than a quarter of a century at the trade means we read a space before we cut a single sheet.</p>
-                  <p>We keep the whole process under one roof — consultation, laser-precise measurement, fabrication and installation — so nothing is lost in translation between the drawing and the finished edge. The result is glass that fits the first time and looks right for decades.</p>
-                </div>
-                <div className="stat-row">
-                  <div className="stat"><div className="n">15+</div><div className="l">Years serving Sydney</div></div>
-                  <div className="stat"><div className="n">1,200+</div><div className="l">Projects installed</div></div>
-                  <div className="stat"><div className="n">5.0</div><div className="l">Average client rating</div></div>
-                </div>
-              </div>
+              <a className="link-i" href="#contact">Learn more <span>›››</span></a>
             </div>
-          </div>
-        </section>
-
-        {/* PROCESS */}
-        <section className="block process" id="process">
-          <div className="wrap">
-            <div className="sec-head reveal">
-              <span className="eyebrow">How we work</span>
-              <h2>Four steps, one team, no surprises.</h2>
-            </div>
-            <div className="steps">
-              {[
-                { n: '01', t: 'Consult', d: 'We visit your site, understand the brief and advise on glass type, thickness and hardware.' },
-                { n: '02', t: 'Measure & design', d: 'Precise on-site measurement and a clear quote — no templates, no guesswork.' },
-                { n: '03', t: 'Fabricate', d: 'Cut, toughened and edge-polished to spec, ready for a flawless fit.' },
-                { n: '04', t: 'Install', d: 'Clean, careful installation by the same glaziers who measured — finished on time.' },
-              ].map((s) => (
-                <div className="step reveal" key={s.n}>
-                  <div className="num">{s.n}</div>
-                  <h3>{s.t}</h3>
-                  <p>{s.d}</p>
+            <div className="svc-list rv">
+              {SERVICES.map((s) => (
+                <div className="svc-row" key={s.no}>
+                  <span className="no">{s.no}</span>
+                  <span className="t">{s.t}</span>
+                  <span className="d">{s.d}</span>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* GALLERY */}
-        <section className="block gallery" id="gallery">
+        {/* MATERIALS */}
+        <section className="blk materials" id="materials">
           <div className="wrap">
-            <div className="sec-head center reveal">
-              <span className="eyebrow">Selected work</span>
-              <h2>Where light meets craftsmanship.</h2>
-              <p>A glimpse of recent installations across Sydney homes and commercial spaces.</p>
+            <div className="mat-head rv">
+              <h2>Materials, chosen<br />for the light.</h2>
+              <span className="eyebrow" style={{ maxWidth: '26ch', textAlign: 'right' }}>Low-iron clarity, texture and tone — matched to each project.</span>
             </div>
-            <div className="gal-grid">
-              <div className="tile big reveal">
-                <img className="photo" src={IMG.shower} alt="Frameless shower screen" onError={hideOnError} />
-                <div className="cap"><span>Bathroom</span><b>Frameless shower screen</b></div>
-              </div>
-              <div className="tile reg reveal">
-                <img className="photo" src={IMG.splash} alt="Coloured glass splashback" onError={hideOnError} />
-                <div className="cap"><span>Kitchen</span><b>Coloured splashback</b></div>
-              </div>
-              <div className="tile reg reveal">
-                <img className="photo" src={IMG.mirror} alt="Feature mirror wall" onError={hideOnError} />
-                <div className="cap"><span>Interior</span><b>Feature mirror wall</b></div>
-              </div>
-              <div className="tile wide reveal">
-                <img className="photo" src={IMG.balustrade} alt="Frameless glass balustrade" onError={hideOnError} />
-                <div className="cap"><span>Staircase</span><b>Frameless balustrade</b></div>
-              </div>
-              <div className="tile wide reveal">
-                <img className="photo" src={IMG.pool} alt="Glass pool fence" onError={hideOnError} />
-                <div className="cap"><span>Outdoor</span><b>Glass pool fence</b></div>
-              </div>
+            <div className="mat-row rv">
+              {MATERIALS.map((m) => (
+                <div className="mat" key={m.n}><div className="n">{m.n}</div><div className="d">{m.d}</div></div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* TESTIMONIAL */}
-        <section className="block quote">
-          <div className="wrap reveal">
-            <div className="stars">★★★★★</div>
-            <blockquote>&ldquo;The finish is flawless. Claudio measured everything himself and the shower screen fits like it was poured into the space. Genuinely the best trade we dealt with on our renovation.&rdquo;</blockquote>
-            <div className="who"><b>Elena &amp; Marco D.</b> — Home renovation, Inner West Sydney</div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="cta-band">
-          <canvas id="cta-art" aria-hidden="true" />
-          <div className="wrap reveal">
-            <span className="eyebrow">Planning a renovation?</span>
-            <h2>Let&apos;s talk glass.</h2>
-            <p>Tell us about your project and we&apos;ll arrange a free on-site consultation and quote, anywhere across Sydney.</p>
-            <a className="btn btn-primary" href="#contact">Book your free measure &amp; quote <Arrow /></a>
+        {/* WHO */}
+        <section className="blk who" id="who">
+          <div className="wrap who-grid">
+            <div className="rv">
+              <div className="kicker" />
+              <span className="eyebrow">Who we are</span>
+              <h2>An Italian glazier&apos;s eye,<br />at home in Sydney.</h2>
+              <p>Founded in 2008 and based in Five Dock, Romano Glass brings more than a quarter of a century of craftsmanship to residential and commercial projects across the city. We keep design, fabrication and installation under one roof — so nothing is lost between the drawing and the finished edge.</p>
+              <a className="link-i" href="#contact" style={{ marginTop: 28 }}>Work with us <span>›››</span></a>
+            </div>
+            <div className="stats rv">
+              <div className="stat"><div className="n">2008</div><div className="l">Established in Sydney</div></div>
+              <div className="stat"><div className="n">25+</div><div className="l">Years of craft</div></div>
+              <div className="stat"><div className="n">1,200+</div><div className="l">Projects delivered</div></div>
+              <div className="stat"><div className="n">100%</div><div className="l">Custom made to measure</div></div>
+            </div>
           </div>
         </section>
 
         {/* CONTACT */}
-        <section className="block contact" id="contact">
-          <div className="wrap">
-            <div className="contact-grid">
-              <div className="contact-info reveal">
-                <span className="eyebrow">Get in touch</span>
-                <h2>Let&apos;s make something clear.</h2>
-                <p>Visit our Five Dock workshop or send us your project details — we&apos;ll get back to you within one business day.</p>
-                <div className="info-list">
-                  <div className="info-item"><div className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-4.5-7-10a7 7 0 0 1 14 0c0 5.5-7 10-7 10z" /><circle cx="12" cy="11" r="2.4" /></svg></div><div><div className="t">Workshop</div><div className="v">Unit 2 / 24 Spencer St, Five Dock, NSW 2046</div></div></div>
-                  <div className="info-item"><div className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5c0 9 6 15 15 15l-1-4-4-1-2 2c-2-1-4-3-5-5l2-2-1-4z" /></svg></div><div><div className="t">Phone</div><a className="v" href="tel:+61466126937">0466 126 937</a></div></div>
-                  <div className="info-item"><div className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg></div><div><div className="t">Email</div><a className="v" href="mailto:info@romanoglass.com.au">info@romanoglass.com.au</a></div></div>
-                  <div className="info-item"><div className="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg></div><div><div className="t">Hours</div><div className="v">Mon–Fri 7am–4pm · Sat by appointment</div></div></div>
-                </div>
+        <section className="blk contact" id="contact">
+          <div className="wrap contact-grid">
+            <div className="rv">
+              <div className="kicker on-dark" />
+              <span className="eyebrow">Contact</span>
+              <h2>Let&apos;s shape<br />your project.</h2>
+              <p className="sub">Visit the Five Dock workshop or send your project details — we reply within one business day.</p>
+              <div className="cinfo">
+                <div className="row"><span className="k">Workshop</span><span className="v">Unit 2 / 24 Spencer St, Five Dock NSW 2046</span></div>
+                <a href="tel:+61466126937"><span className="k">Phone</span><span className="v">0466 126 937</span></a>
+                <a href="mailto:info@romanoglass.com.au"><span className="k">Email</span><span className="v">info@romanoglass.com.au</span></a>
+                <div className="row"><span className="k">Hours</span><span className="v">Mon–Fri 7–4 · Sat by appointment</span></div>
               </div>
-              <form
-                className="card reveal"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  const note = e.currentTarget.querySelector('.form-note')
-                  if (note) note.textContent = 'Thanks — this is a design preview. In the live site this sends straight to info@romanoglass.com.au.'
-                }}
-              >
-                <div className="field row">
-                  <div><label htmlFor="n">Name</label><input id="n" type="text" placeholder="Your name" required /></div>
-                  <div><label htmlFor="p">Phone</label><input id="p" type="tel" placeholder="04xx xxx xxx" /></div>
-                </div>
-                <div className="field"><label htmlFor="e">Email</label><input id="e" type="email" placeholder="you@email.com" required /></div>
-                <div className="field">
-                  <label htmlFor="s">Project type</label>
-                  <select id="s">
-                    <option>Frameless shower screen</option>
-                    <option>Glass splashback</option>
-                    <option>Mirror / wardrobe</option>
-                    <option>Balustrade / stairs</option>
-                    <option>Glass pool fencing</option>
-                    <option>Curved / patterned glass</option>
-                    <option>Something else</option>
-                  </select>
-                </div>
-                <div className="field"><label htmlFor="m">Project details</label><textarea id="m" placeholder="Tell us about your space, timeframe and any measurements you have…" /></div>
-                <button className="btn btn-primary" type="submit">Send enquiry
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z" /></svg>
-                </button>
-                <p className="form-note">We reply within one business day.</p>
-              </form>
             </div>
+            <form
+              className="rv"
+              onSubmit={(e) => {
+                e.preventDefault()
+                const note = e.currentTarget.querySelector('.form-note')
+                if (note) note.textContent = 'Thank you — this is a design preview. On the live site this sends straight to info@romanoglass.com.au.'
+              }}
+            >
+              <div className="fld row2">
+                <div><label htmlFor="n">Name</label><input id="n" type="text" placeholder="Your name" required /></div>
+                <div><label htmlFor="p">Phone</label><input id="p" type="tel" placeholder="04xx xxx xxx" /></div>
+              </div>
+              <div className="fld"><label htmlFor="e">Email</label><input id="e" type="email" placeholder="you@email.com" required /></div>
+              <div className="fld">
+                <label htmlFor="s">Project</label>
+                <select id="s">
+                  <option>Balcony balustrades</option>
+                  <option>Internal glass doors</option>
+                  <option>Frameless shower screen</option>
+                  <option>Glass splashback</option>
+                  <option>Staircase glazing</option>
+                  <option>Glass pool fencing</option>
+                  <option>Bespoke / tailor-made</option>
+                </select>
+              </div>
+              <div className="fld"><label htmlFor="m">Tell us about the space</label><textarea id="m" placeholder="Location, timeframe, any measurements you have…" /></div>
+              <button className="btn btn-solid" type="submit">Send enquiry <ArrowUpRight /></button>
+              <p className="form-note">We reply within one business day.</p>
+            </form>
           </div>
         </section>
       </main>
@@ -441,22 +438,22 @@ export default function RomanoGlassPage() {
         <div className="wrap">
           <div className="foot-top">
             <div className="foot-brand">
-              <div className="name">Romano Glass</div>
-              <p>Bespoke architectural glass, designed and installed across Sydney since 2008.</p>
+              <span className="wm"><b>ROMANO</b><span>GLASS</span></span>
+              <p>Bespoke architectural glass, drawn and made in Sydney since 2008.</p>
             </div>
             <div className="foot-col">
-              <h4>Services</h4>
-              <a href="#services">Shower screens</a>
-              <a href="#services">Splashbacks</a>
-              <a href="#services">Mirrors</a>
-              <a href="#services">Balustrades</a>
-              <a href="#services">Pool fencing</a>
+              <h4>Solutions</h4>
+              <a href="#solutions">Balustrades</a>
+              <a href="#solutions">Glass doors</a>
+              <a href="#solutions">Shower screens</a>
+              <a href="#solutions">Splashbacks</a>
+              <a href="#solutions">Pool fencing</a>
             </div>
             <div className="foot-col">
-              <h4>Company</h4>
-              <a href="#heritage">Our craft</a>
-              <a href="#gallery">Our work</a>
-              <a href="#process">Process</a>
+              <h4>Studio</h4>
+              <a href="#services">Services</a>
+              <a href="#materials">Materials</a>
+              <a href="#who">Who we are</a>
               <a href="#contact">Contact</a>
             </div>
             <div className="foot-col">
@@ -468,15 +465,17 @@ export default function RomanoGlassPage() {
             </div>
           </div>
           <div className="foot-bottom">
-            <div>© 2026 Romano Glass. All rights reserved.</div>
-            <div className="socials">
-              <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 22v-8h3l1-4h-4V8c0-1 .3-2 2-2h2V2.5C18.5 2.4 17 2 15.5 2 12.5 2 11 3.8 11 7v3H8v4h3v8z" /></svg></a>
-              <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg></a>
-              <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 8A1.5 1.5 0 1 0 6.5 5a1.5 1.5 0 0 0 0 3zM5 10h3v9H5zM10 10h3v1.3c.5-.9 1.6-1.5 2.9-1.5 2.3 0 3.1 1.4 3.1 3.7V19h-3v-4.5c0-1.1-.4-1.8-1.4-1.8-.8 0-1.3.5-1.5 1.1-.1.2-.1.5-.1.8V19h-3z" /></svg></a>
-            </div>
+            <span>© 2026 Romano Glass. All rights reserved.</span>
+            <span>Architectural glazing · Sydney</span>
           </div>
         </div>
       </footer>
+
+      <a className="wa" href="#contact" aria-label="WhatsApp">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.5 14.4c-.3-.15-1.7-.85-2-.95-.26-.1-.45-.15-.64.15-.19.28-.73.94-.9 1.13-.16.19-.33.21-.62.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.29-.02-.45.13-.6.13-.13.29-.34.44-.5.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.5-.08-.15-.64-1.55-.88-2.12-.23-.55-.47-.48-.64-.49h-.55c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.08 4.88 4.32.68.29 1.21.47 1.63.6.68.22 1.31.19 1.8.12.55-.08 1.7-.69 1.94-1.36.24-.67.24-1.24.17-1.36-.07-.12-.26-.19-.55-.34zM12 2a10 10 0 0 0-8.6 15.06L2 22l5.05-1.32A10 10 0 1 0 12 2z" />
+        </svg>
+      </a>
     </div>
   )
 }
